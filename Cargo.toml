@@ -1,0 +1,3 @@
+[workspace]
+members = ["ukweli_cli", "ukweli_db"]
+resolver = "3"
