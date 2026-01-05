@@ -1,23 +1,26 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::format};
 
-use crate::core::User;
+use crate::{LedgerError, core::User};
 use ed25519_dalek::VerifyingKey;
 use sha256::digest;
 
 use super::record::Record;
 
+pub const GENESIS_PREV_HASH: &str = "00000000";
+
 #[derive(Debug)]
 pub struct Ledger {
     pub records: Vec<Record>,
     pub users: HashMap<String, User>,
-    pub verify_registry: HashMap<String, VerifyingKey>,
+    pub verify_registry: HashMap<String, VerifyingKey>, // (userid, vkey)
 }
 
 impl Ledger {
     pub fn new() -> Self {
         // todo genesis more complex in the future
         let genesis_user = User::new("GENESIS");
-        let genesis_record = Record::new(0, "Genesis", "00000000");
+        let genesis_record =
+            Record::new(0, "Genesis", GENESIS_PREV_HASH, vec![genesis_user.clone()]);
 
         let user_id = genesis_user.user_id.clone();
         let verifying_key = genesis_user.verifying_key;
@@ -35,16 +38,26 @@ impl Ledger {
         }
     }
 
-    pub fn add_record(&mut self, payload: &str) -> Result<usize, String> {
+    pub fn add_record(&mut self, payload: &str, signers: Vec<User>) -> Result<usize, LedgerError> {
+        for signer in &signers {
+            if !self.verify_registry.contains_key(&signer.user_id) {
+                return Err(LedgerError::UnregistedUser);
+            }
+        }
         let last_record = match self.get_last_record() {
             Some(record) => record,
-            None => return Err("System error: Could not access previous record.".to_string()),
+            None => return Err(LedgerError::RecordAccessFailed),
         };
 
         if payload.is_empty() {
-            return Err("Cannot add an empty payload".to_string());
+            return Err(LedgerError::EmptyPayload);
         }
-        let record = Record::new(last_record.index + 1, payload, &last_record.record_hash);
+        let record = Record::new(
+            last_record.index + 1,
+            payload,
+            &last_record.record_hash,
+            signers,
+        );
         let ret_index = record.index;
         self.records.push(record);
 
@@ -55,7 +68,13 @@ impl Ledger {
         self.records.last()
     }
 
-    pub fn register_user() {}
+    pub fn register_user(&mut self, user: User) {
+        let user_id = user.user_id.clone();
+        let verifying_key = user.verifying_key;
+
+        self.users.insert(user_id.clone(), user);
+        self.verify_registry.insert(user_id, verifying_key);
+    }
 
     pub fn length(&self) -> usize {
         self.records.len()
@@ -69,14 +88,60 @@ impl Ledger {
         self.users.iter()
     }
 
-    pub fn verify_chain(&self) -> bool {
-        // for record in self.records.iter() {
-        //     let computed_hash = digest(record.payload.to_owned());
-        //     if computed_hash != record.hash {
-        //         return false;
-        //     }
-        // }
-        true
+    fn verify_signatures(&self, record: Record) -> Result<bool, LedgerError> {
+        for signe
+        Ok(true)
+    }
+
+    pub fn verify_chain(&self) -> Result<bool, LedgerError> {
+        for (i, record) in self.records.iter().enumerate() {
+            if i == 0 {
+                if record.prev_hash != GENESIS_PREV_HASH {
+                    return Err(LedgerError::ChainValidation("Invalid genesis".to_string()));
+                }
+            } else {
+                let prev_record = self
+                    .records
+                    .get(i - 1)
+                    .ok_or(LedgerError::RecordAccessFailed)?;
+                if record.prev_hash != prev_record.record_hash {
+                    return Err(LedgerError::ChainValidation(format!(
+                        "Broken chain at {}",
+                        i,
+                    )));
+                }
+            }
+
+            let computed_payload_hash = digest(&record.payload);
+            if computed_payload_hash != record.payload_hash {
+                return Err(LedgerError::ChainValidation(format!(
+                    "Payload tampered at {}",
+                    i,
+                )));
+            }
+
+            let joined_signers = record
+                .signers
+                .iter()
+                .map(|u| u.user_id.clone())
+                .collect::<Vec<String>>()
+                .join(",");
+
+            let material = format!(
+                "{} {} {} {}",
+                record.index, record.prev_hash, record.payload_hash, joined_signers
+            );
+            let computed_record_hash = digest(material);
+            if computed_record_hash != record.record_hash {
+                return Err(LedgerError::ChainValidation(format!(
+                    "Record hash mismatch at {}",
+                    i,
+                )));
+            }
+
+            let sig_check = self.verify_signatures(record);
+        }
+        Ok(true)
     }
 }
 
@@ -87,12 +152,17 @@ impl Default for Ledger {
 }
 #[cfg(test)]
 mod tests {
+    // only in tests :) I want them to panic here but never during runtime
+    #![allow(clippy::unwrap_used)]
+    #![allow(clippy::expect_used)]
+    #![allow(clippy::indexing_slicing)]
+    #![allow(clippy::panic)]
+    #![allow(clippy::unreachable)]
+    #![allow(clippy::assertions_on_result_states)]
+
     use super::*;
 
     #[test]
-    #[allow(clippy::unwrap_used)]
-    #[allow(clippy::expect_used)]
-    #[allow(clippy::indexing_slicing)] // only in tests :) I want them to panic here but never during runtime
     fn test_ledger_init() {
         let db = Ledger::new();
 
@@ -103,69 +173,133 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::unwrap_used)]
-    #[allow(clippy::expect_used)]
-    #[allow(clippy::indexing_slicing)]
-    fn test_records() {
-        let mut db = Ledger::new();
+    fn test_add_record() {
+        let mut ledger = Ledger::new();
 
-        assert_eq!(db.records[0].index, 0);
-        assert_eq!(db.length(), 1);
+        let test_signer = User::new("user1");
+        ledger.register_user(test_signer.clone());
+        let result = ledger.add_record("test payload", vec![test_signer]);
+        assert!(result.is_ok());
+        assert_eq!(ledger.length(), 2);
 
-        let last_record = db.get_last_record().cloned().unwrap();
-        let appended_i = db.add_record("pay 100").expect("Failed to add record");
+        let added_record = &ledger.records[1];
+        assert_eq!(added_record.payload, "test payload");
+        assert_eq!(added_record.index, 1);
 
-        println!("--- Records ----");
-        for (index, record) in db.all_records().enumerate() {
-            let display_hash: String = record.record_hash.chars().take(8).collect();
-            let display_prevhash: String = record.prev_hash.chars().take(8).collect();
-            println!(
-                "{}: [Payload: {}] [Hash: {}...] [Prev-Hash: {}...]",
-                index, record.payload, display_hash, display_prevhash
-            );
-        }
-        println!("-----------------");
+        // adding record with unregistered user
+        let unreg_signer = User::new("unreg_user");
+        let result = ledger.add_record("another payload", vec![unreg_signer]);
+        assert!(result.is_err());
 
-        println!("--- Users ----");
-        for (index, (user_id, user)) in db.all_users().enumerate() {
-            // let display_verify_key: String = user.verifying_key.chars().take(8).collect();            // let display_prevhash: String = record.prev_hash.chars().take(8).collect();
-            println!(
-                "{}: [User: {}] [Verifying Key: {:#?}...]",
-                index, user_id, user.verifying_key
-            );
-        }
-        println!("-----------------");
-        assert_eq!(appended_i, 1);
-
-        // test prev hash = has of prev
-        assert_eq!(db.records[appended_i].prev_hash, last_record.record_hash);
-
-        db.add_record("sell 100").expect("Failed to add record");
-
-        // modify data
-        db.records[1].payload = "evil data bahaha".to_owned();
-
-        println!("--- Records ----");
-        for (index, record) in db.all_records().enumerate() {
-            let display_hash: String = record.record_hash.chars().take(8).collect();
-            let display_prevhash: String = record.prev_hash.chars().take(8).collect();
-            println!(
-                "{}: [Payload: {}] [Hash: {}...] [Prev-Hash: {}...]",
-                index, record.payload, display_hash, display_prevhash
-            );
-        }
-        println!("-----------------");
-
-        assert!(!db.verify_chain());
+        // adding record with empty payload
+        let reg_signer = User::new("reg_user");
+        ledger.register_user(reg_signer.clone());
+        let result = ledger.add_record("", vec![reg_signer]);
+        assert!(result.is_err());
     }
 
     #[test]
-    fn it_works() {
-        let input = String::from("hello");
-        let val = digest(input);
-        assert_eq!(
-            val,
-            "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
-        );
+    fn test_verify_chain_valid() {
+        let mut ledger = Ledger::new();
+
+        let test_signer1 = User::new("user1");
+        let test_signer2 = User::new("user2");
+        let test_signer3 = User::new("user3");
+
+        ledger.register_user(test_signer1.clone());
+        ledger.register_user(test_signer2.clone());
+        ledger.register_user(test_signer3.clone());
+
+        ledger
+            .add_record("pay 100", vec![test_signer1, test_signer2])
+            .unwrap();
+        ledger.add_record("sell 50", vec![test_signer3]).unwrap();
+
+        assert!(ledger.verify_chain());
+    }
+
+    #[test]
+    fn test_verify_chain_tampered() {
+        let mut ledger = Ledger::new();
+
+        let test_signer1 = User::new("user1");
+        let test_signer2 = User::new("user2");
+        let test_signer3 = User::new("user3");
+
+        ledger
+            .add_record("pay 100", vec![test_signer1, test_signer2])
+            .unwrap();
+        ledger.add_record("sell 50", vec![test_signer3]).unwrap();
+
+        // Tamper with data
+        ledger.records[1].payload = "evil data".to_string();
+
+        // Tampered chain should fail verification
+        assert!(!ledger.verify_chain());
+    }
+
+    #[test]
+    fn test_error_handling() {
+        let mut ledger = Ledger::new();
+
+        // empty paylod
+        // let result = ledger.add_record("");
+        // assert!(result.is_err());
+
+        //  duplicate user ID (if you have add_user)
+        // let result = ledger.add_user("GENESIS");
+        // assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_hash_calculation() {
+        let mut ledger = Ledger::new();
+        let test_signer1 = User::new("user1");
+
+        let record1_hash = ledger.records[0].record_hash.clone();
+        ledger.add_record("test", vec![test_signer1]).unwrap();
+
+        let record2_hash = ledger.records[1].record_hash.clone();
+
+        // Hashes should be different
+        assert_ne!(record1_hash, record2_hash);
+
+        assert_eq!(record1_hash.len(), 64);
+        assert_eq!(record2_hash.len(), 64);
+    }
+
+    #[test]
+    fn test_comprehensive_scenario() {
+        let mut ledger = Ledger::new();
+
+        let user1 = User::new("Elvis");
+        let user2 = User::new("Thabo");
+        let user3 = User::new("Kamau");
+        let user4 = User::new("Kipchoge");
+        let user5 = User::new("Amina");
+        let user6 = User::new("Zuri");
+
+        let transactions = [
+            "Elvis pays Thabo 100",
+            "Kamau pays Kipchoge 50",
+            "Amina pays Zuri 200",
+        ];
+
+        ledger
+            .add_record(transactions[0], vec![user1, user2])
+            .unwrap();
+        ledger
+            .add_record(transactions[1], vec![user3, user4])
+            .unwrap();
+        ledger
+            .add_record(transactions[2], vec![user5, user6])
+            .unwrap();
+
+        assert!(ledger.verify_chain());
+
+        assert_eq!(ledger.length(), 4);
+
+        ledger.records[2].payload = "HACKED!".to_string();
+        assert!(!ledger.verify_chain());
     }
 }
