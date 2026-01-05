@@ -2,8 +2,10 @@
 #![deny(clippy::expect_used)]
 #![deny(clippy::indexing_slicing)]
 #![deny(clippy::panic)]
+#![deny(unused_must_use)]
 
 pub mod core;
+pub mod error;
 
-pub use core::{Record, Ledger};
-
+pub use core::{Ledger, Record};
+pub use error::LedgerError;

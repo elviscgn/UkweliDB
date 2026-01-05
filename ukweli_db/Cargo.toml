@@ -7,3 +7,4 @@ edition = "2024"
 ed25519-dalek = { version = "2.2.0", features = ["rand_core"] }
 rand = "0.8.5"
 sha256 = "1.6.0"
+thiserror = "2.0.17"
