@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fmt::format};
 
 use crate::{LedgerError, core::User};
-use ed25519_dalek::VerifyingKey;
+use ed25519_dalek::{VerifyingKey, ed25519::signature};
 use sha256::digest;
 
 use super::record::Record;
@@ -15,11 +15,17 @@ pub struct Ledger {
     pub verify_registry: HashMap<String, VerifyingKey>, // (userid, vkey)
 }
 
+impl From<ed25519_dalek::SignatureError> for LedgerError {
+    fn from(err: ed25519_dalek::SignatureError) -> Self {
+        LedgerError::ChainValidation(err.to_string())
+    }
+}
+
 impl Ledger {
     pub fn new() -> Self {
         // todo genesis more complex in the future
         let genesis_user = User::new("GENESIS");
-        let genesis_record =
+        let mut genesis_record =
             Record::new(0, "Genesis", GENESIS_PREV_HASH, vec![genesis_user.clone()]);
 
         let user_id = genesis_user.user_id.clone();
@@ -28,8 +34,13 @@ impl Ledger {
         let mut users = HashMap::new();
         let mut verify_registry = HashMap::new();
 
-        users.insert(user_id.clone(), genesis_user);
+        users.insert(user_id.clone(), genesis_user.clone());
         verify_registry.insert(user_id, verifying_key);
+
+        let signature = genesis_user.sign(genesis_record.record_hash.as_bytes());
+        genesis_record
+            .signatures
+            .insert(genesis_user.user_id, signature);
 
         Self {
             records: vec![genesis_record],
@@ -88,8 +99,27 @@ impl Ledger {
         self.users.iter()
     }
 
-    fn verify_signatures(&self, record: Record) -> Result<bool, LedgerError> {
-        for signe
+    fn verify_signatures(&self, record: &Record) -> Result<bool, LedgerError> {
+        for signer in &record.signers {
+            let verify_key: Result<&VerifyingKey, LedgerError> = self
+                .verify_registry
+                .get(&signer.user_id)
+                .ok_or(LedgerError::ChainValidation(format!(
+                    "Unknown signer {:?}",
+                    signer.user_id
+                )));
+
+            let signature =
+                record
+                    .signatures
+                    .get(&signer.user_id)
+                    .ok_or(LedgerError::ChainValidation(format!(
+                        "Missing signature from {}",
+                        signer.user_id
+                    )));
+
+            verify_key?.verify_strict(record.record_hash.as_bytes(), signature?)?;
+        }
         Ok(true)
     }
 
@@ -139,7 +169,9 @@ impl Ledger {
                 )));
             }
 
-            let sig_check = self.verify_signatures(record);
+            self.verify_signatures(record).map_err(|e| {
+                LedgerError::ChainValidation(format!("Signature validation failed: {}", e))
+            })?;
         }
         Ok(true)
     }
@@ -215,7 +247,7 @@ mod tests {
             .unwrap();
         ledger.add_record("sell 50", vec![test_signer3]).unwrap();
 
-        assert!(ledger.verify_chain());
+        assert!(ledger.verify_chain().unwrap());
     }
 
     #[test]
@@ -226,6 +258,10 @@ mod tests {
         let test_signer2 = User::new("user2");
         let test_signer3 = User::new("user3");
 
+        ledger.register_user(test_signer1.clone());
+        ledger.register_user(test_signer2.clone());
+        ledger.register_user(test_signer3.clone());
+
         ledger
             .add_record("pay 100", vec![test_signer1, test_signer2])
             .unwrap();
@@ -235,26 +271,28 @@ mod tests {
         ledger.records[1].payload = "evil data".to_string();
 
         // Tampered chain should fail verification
-        assert!(!ledger.verify_chain());
+        let result = ledger.verify_chain();
+        assert!(result.is_err());
     }
 
     #[test]
     fn test_error_handling() {
         let mut ledger = Ledger::new();
+        let unreg_signer = User::new("unreg_user");
+        let result = ledger.add_record("test payload", vec![unreg_signer]);
+        assert!(matches!(result, Err(LedgerError::UnregistedUser)));
 
-        // empty paylod
-        // let result = ledger.add_record("");
-        // assert!(result.is_err());
-
-        //  duplicate user ID (if you have add_user)
-        // let result = ledger.add_user("GENESIS");
-        // assert!(result.is_err());
+        let empty_payload_signer = User::new("reg_user");
+        ledger.register_user(empty_payload_signer.clone());
+        let result = ledger.add_record("", vec![empty_payload_signer]);
+        assert!(matches!(result, Err(LedgerError::EmptyPayload)));
     }
 
     #[test]
     fn test_hash_calculation() {
         let mut ledger = Ledger::new();
         let test_signer1 = User::new("user1");
+        ledger.register_user(test_signer1.clone());
 
         let record1_hash = ledger.records[0].record_hash.clone();
         ledger.add_record("test", vec![test_signer1]).unwrap();
@@ -279,6 +317,13 @@ mod tests {
         let user5 = User::new("Amina");
         let user6 = User::new("Zuri");
 
+        ledger.register_user(user1.clone());
+        ledger.register_user(user2.clone());
+        ledger.register_user(user3.clone());
+        ledger.register_user(user4.clone());
+        ledger.register_user(user5.clone());
+        ledger.register_user(user6.clone());
+
         let transactions = [
             "Elvis pays Thabo 100",
             "Kamau pays Kipchoge 50",
@@ -295,11 +340,12 @@ mod tests {
             .add_record(transactions[2], vec![user5, user6])
             .unwrap();
 
-        assert!(ledger.verify_chain());
+        assert!(ledger.verify_chain().unwrap());
 
         assert_eq!(ledger.length(), 4);
 
         ledger.records[2].payload = "HACKED!".to_string();
-        assert!(!ledger.verify_chain());
+        let result = ledger.verify_chain();
+        assert!(result.is_err());
     }
 }
