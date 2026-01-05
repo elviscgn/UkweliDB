@@ -6,10 +6,13 @@ use sha256::digest;
 pub struct Record {
     pub index: usize,
     pub payload: String,
-    pub hash: String,
-    pub prev_hash: String,
+    pub payload_hash: String,
+    
     pub signers: Vec<String>,
-    pub signatures: Vec<Signature>
+    pub signatures: Vec<Signature>,
+
+    pub prev_hash: String,
+    pub record_hash: String,
 }
 
 impl Record {
@@ -17,10 +20,15 @@ impl Record {
         Self {
             index,
             payload: payload.to_string(),
-            hash: digest(payload),
-            prev_hash: prev_hash.to_string(),
+            payload_hash: digest(payload),
+            
             signatures: vec![],
-            signers: vec![]
+            signers: vec![],
+
+            record_hash: "".to_string(),
+            prev_hash: prev_hash.to_string(),
+
+            
         }
     }
 }
