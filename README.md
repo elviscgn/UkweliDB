@@ -22,7 +22,21 @@ when verifying, this will immediately break and show us where the data was chang
 <details> 
   <summary>details...</summary>
 <p>
-Now the chain of hashes prevents people form quietly chaning history, but we still have a problem; We cant' tell who actually created a record nor can we prove who added what. This is where users and signatures come into play.
+Now the chain of hashes prevents people from quietly changing history, but we still have a problem; We can't tell who actually created a record nor can we prove who added what. This is where users and signatures come into play.
+
+Every user in the system has a cryptographic key pair. A private key to sign records and a public key that anyone can use to verify that signature. When a user creates a record, they sign the record's hash, then the record keeps a list of their signatures so that later on anyone can check was this really created by these people
+</p>
+<img src="assets/records2.png"/>
+
+The first record is still the starting point, signed by the system. Every other record now shows who approved it. With the hash chain, this means you can’t alter the data or lie about who did it. Tampering breaks the chain, and signatures confirm who was responsible.
+</details>
+
+<h2>Workflows, States and rules</h2>
+
+<details> 
+  <summary>details...</summary>
+<p>
+Now the chain of hashes prevents people from quietly changing history, but we still have a problem; We can't tell who actually created a record nor can we prove who added what. This is where users and signatures come into play.
 
 Every user in the system has a cryptographic key pair. A private key to sign records and a public key that anyone can use to verify that signature. When a user creates a record, they sign the record's hash, then the record keeps a list of their signatures so that later on anyone can check was this really created by these people
 </p>
