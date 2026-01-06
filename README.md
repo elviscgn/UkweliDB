@@ -36,7 +36,7 @@ The first record is still the starting point, signed by the system. Every other 
 <details> 
   <summary>details...</summary>
 <p>
-So far we have a working ledger that is immutable and we can trace who signed what. However in real systems this isnt enough. Even if the right people signed a record, there still needs to be some rules on when things can happen. For example let's say I was writing a procurement system for the South African government. A tender wouldn't just jump around randomly it would move through something like <code>call_for_bids</code> to <code>bidding_open</code> then <code>evaluation</code> then `<code>awarded</code> and so on. To implement this our db needs to have rules about when things happen. 
+So far we have a working ledger that is immutable and we can trace who signed what. However in real systems this isnt enough. Even if the right people signed a record, there still needs to be some rules on when things can happen. For example let's say I was writing a procurement system for the South African government. A tender wouldn't just jump around randomly it would move through something like <code>call_for_bids</code> to <code>bidding_open</code> then <code>evaluation</code> then <code>awarded</code> and so on. To implement this our db needs to have rules about when things happen. 
 
 To do this we'll implement a workflow engine. Instead of allowing any signed record, the ledger now has to check whether the action about to be logged makes sense based on the state of an entity.
 
