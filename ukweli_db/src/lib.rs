@@ -6,6 +6,8 @@
 
 pub mod core;
 pub mod error;
+pub mod workflow;
 
 pub use core::{Ledger, Record};
 pub use error::LedgerError;
+pub use workflow::{State, Workflow};
