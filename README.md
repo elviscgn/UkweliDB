@@ -48,7 +48,9 @@ Initially I wanted this database to be for a goverment procurement system, given
 
 Oversimplified example:
 ```
-workflow_name: procurement
+workflow:
+  name: procurement
+  version: 1
 
 states:
   - open

@@ -8,3 +8,16 @@
 ## Stage 2 (Users and signatures)
 - [x] ability for users to sign a record
 - [x] ability to verify the signatures too
+
+
+## Stage 3 (Workflows, States, Rules) – hardest so far
+- [ ] define entity states
+- [ ] define allowed state transition
+- [ ] enforce that records cannot skip or reverse states unless alowed
+- [ ] workflow engine validations a transition before adding a record
+- [ ] role based approval rules per transition
+- [ ] workflow engine shld load rules from .yaml
+- [ ] derive current state from latest valid record
+- [ ] detect invalid workflow attempts before they hit the chain
+
+
