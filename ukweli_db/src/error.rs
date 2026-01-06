@@ -14,5 +14,11 @@ pub enum LedgerError {
     EmptyPayload,
 
     #[error("{0}")]
-    ChainValidation(String)
+    ChainValidation(String),
+}
+
+#[derive(Error, Debug)]
+pub enum WorkflowError {
+    #[error("{0}")]
+    Definition(String),
 }
