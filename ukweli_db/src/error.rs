@@ -21,4 +21,7 @@ pub enum LedgerError {
 pub enum WorkflowError {
     #[error("{0}")]
     Definition(String),
+
+    #[error("{0}")]
+    Validation(String),
 }
