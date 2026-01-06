@@ -21,3 +21,8 @@
 - [ ] detect invalid workflow attempts before they hit the chain
 
 
+
+## Extras
+- [ ] timestamps and make sure they are well validated
+- [ ] persitence? binary or json? if so they should be well compressed
+- [ ] if time allows make this distributed? very hard but should be possible
