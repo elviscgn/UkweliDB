@@ -24,4 +24,7 @@ pub enum WorkflowError {
 
     #[error("{0}")]
     Validation(String),
+
+    #[error("{0}")]
+    Parsing(String),
 }
