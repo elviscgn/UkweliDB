@@ -2,6 +2,9 @@ use super::definition::Workflow;
 use super::validators::Validator;
 
 use std::collections::HashMap;
+
+use serde_json::Value;
+
 pub struct Engine {
     pub workflows: Vec<Workflow>,
     pub validators: HashMap<String, Validator>,
@@ -14,4 +17,6 @@ impl Engine {
             validators: HashMap::new(),
         }
     }
+
+    fn load_workflow(&mut self, workflow: HashMap<String, Value>) {}
 }
