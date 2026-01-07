@@ -1,8 +1,11 @@
+use serde::{Deserialize, Serialize};
+
 use super::state::State;
 use super::transition::Transition;
 
 use crate::error::WorkflowError;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Workflow {
     pub id: String,
     pub name: String,

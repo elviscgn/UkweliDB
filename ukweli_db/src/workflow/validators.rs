@@ -1,5 +1,6 @@
 use crate::{core::user::User, error::WorkflowError};
 
+#[derive(Debug, Clone)]
 pub enum Validator {
     AlwaysTrue, // hmmm not every state would need validation
     // HasField => for the future when I make payloads json based
