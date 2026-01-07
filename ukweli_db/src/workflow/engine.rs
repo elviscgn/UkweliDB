@@ -1,3 +1,6 @@
+use crate::error::WorkflowError;
+use crate::workflow;
+
 use super::definition::Workflow;
 use super::validators::Validator;
 
@@ -18,5 +21,20 @@ impl Engine {
         }
     }
 
-    fn load_workflow(&mut self, workflow: HashMap<String, Value>) {}
+    fn load_workflow(
+        &mut self,
+        workflow_map: HashMap<String, Value>,
+    ) -> Result<Workflow, WorkflowError> {
+        let workflow_json = serde_json::to_value(workflow_map).map_err(|e| {
+            WorkflowError::Definition(format!("Failed to serialize workflow JSON: {}", e))
+        })?;
+
+        let workflow: Workflow = serde_json::from_value(workflow_json).map_err(|e| {
+            WorkflowError::Definition(format!("Failed to deserialize workflow: {}", e))
+        })?;
+
+        // workflow.validate(&self.validators)?;
+
+        Ok(workflow)
+    }
 }
