@@ -147,8 +147,6 @@ mod tests {
     #![allow(clippy::unreachable)]
     #![allow(clippy::assertions_on_result_states)]
 
-    use std::result;
-
     use serde_json::json;
 
     use crate::State;
@@ -301,5 +299,93 @@ mod tests {
             .unwrap();
 
         assert!(result)
+    }
+
+    #[test]
+    fn test_validate_transition_missing_role() {
+        let mut engine = Engine::new();
+        let workflow_json = create_test_workflow();
+
+        engine.load_workflow(workflow_json).unwrap();
+
+        let editor_user = User::new("user_editor");
+        // editor_user.add_role("editor"); no role
+
+        let result = engine.validate_transition(
+            "test_workflow",
+            "draft",
+            "review",
+            vec![editor_user],
+            "hmmm",
+        );
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_validation_transition_no_such_transition() {
+        let mut engine = Engine::new();
+        let workflow_json = create_test_workflow();
+
+        engine.load_workflow(workflow_json).unwrap();
+
+        let mut editor_user = User::new("user_editor");
+        editor_user.add_role("editor");
+
+        let result = engine.validate_transition(
+            "test_workflow",
+            "draft",
+            "published", // no such transition
+            vec![editor_user],
+            "hmmm",
+        );
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_validate_transition_multiple_signers_combined_roles() {
+        let mut engine = Engine::new();
+        let workflow_json = create_test_workflow();
+
+        engine.load_workflow(workflow_json).unwrap();
+
+        let mut admin_user = User::new("user_admin");
+        admin_user.add_role("admin");
+
+        let mut editor_user = User::new("user_editor");
+        editor_user.add_role("editor");
+
+        let result1 = engine.validate_transition(
+            "test_workflow",
+            "review",
+            "published",
+            vec![admin_user.clone()],
+            "hmmm",
+        );
+
+        assert!(result1.is_err());
+
+        let result2 = engine.validate_transition(
+            "test_workflow",
+            "review",
+            "published",
+            vec![editor_user.clone()],
+            "hmmm",
+        );
+
+        assert!(result2.is_err());
+
+        let result3 = engine
+            .validate_transition(
+                "test_workflow",
+                "review",
+                "published",
+                vec![admin_user, editor_user],
+                "hmmm",
+            )
+            .unwrap();
+
+        assert!(result3);
     }
 }
