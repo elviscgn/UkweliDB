@@ -45,6 +45,4 @@ impl Workflow {
             initial_state: initial_state.to_owned(),
         })
     }
-
-    
 }
