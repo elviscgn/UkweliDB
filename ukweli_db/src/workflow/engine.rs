@@ -176,35 +176,41 @@ mod tests {
 
     fn create_test_workflow() -> HashMap<String, Value> {
         let workflow = json!({
-          "id": "land_registry_v1",
-          "name": "Land Registry",
-          "description": "Immutable workflow for property ownership transfers",
-          "initial_state": "application",
-          "states": [
-            {"id": "application", "label": "Application Submitted"},
-            {"id": "verification", "label": "Verify Documents"},
-            {"id": "approval", "label": "Approve Transfer"},
-            {"id": "registered", "label": "Ownership Registered"}
-          ],
-          "transitions": [
-            {
-              "from_state": "application",
-              "to_state": "verification",
-              "name": "submit",
-              "required_roles": ["applicant"]
-            },
-            {
-              "from_state": "verification",
-              "to_state": "approval",
-              "name": "verify",
-              "required_roles": ["inspector"]
-            },
-            {
-              "from_state": "approval",
-              "to_state": "registered",
-              "name": "finalize",
-              "required_roles": ["officer", "clerk"]
-            }
+         "id": "test_workflow",
+            "name": "Test Workflow",
+            "description": "A test workflow",
+            "initial_state": "draft",
+            "states": [
+                {"id": "draft", "label": "Draft"},
+                {"id": "review", "label": "Under Review"},
+                {"id": "published", "label": "Published"},
+                {"id": "archived", "label": "Archived"}
+            ],
+            "transitions": [
+                {
+                    "from_state": "draft",
+                    "to_state": "review",
+                    "name": "Submit for Review",
+                    "required_roles": ["editor"],
+                },
+                {
+                    "from_state": "review",
+                    "to_state": "published",
+                    "name": "Publish",
+                    "required_roles": ["admin", "editor"],
+                },
+                {
+                    "from_state": "review",
+                    "to_state": "draft",
+                    "name": "Return to Draft",
+                    "required_roles": ["editor"],
+                },
+                {
+                    "from_state": "published",
+                    "to_state": "archived",
+                    "name": "Archive",
+                    "required_roles": ["admin"],
+                }
           ]
         }
         );
@@ -227,14 +233,29 @@ mod tests {
 
         let workflow = result.unwrap();
 
-        assert_eq!(workflow.id, "land_registry_v1");
+        assert_eq!(workflow.id, "test_workflow");
         assert_eq!(workflow.states.len(), 4);
-        assert_eq!(workflow.transitions.len(), 3);
+        assert_eq!(workflow.transitions.len(), 4);
 
-        let fetched_workflow = engine.workflows.get("land_registry_v1");
+        let fetched_workflow = engine.workflows.get("test_workflow");
         assert!(fetched_workflow.is_some());
 
         let fetched_workflow = fetched_workflow.unwrap();
-        assert_eq!(fetched_workflow.id, "land_registry_v1");
+        assert_eq!(fetched_workflow.id, "test_workflow");
+    }
+
+    #[test]
+    fn test_get_valid_transitions() {
+        let mut engine = Engine::new();
+        let workflow_json = create_test_workflow();
+
+        engine.load_workflow(workflow_json).unwrap();
+
+        let transitions = engine
+            .get_valid_transitions("test_workflow", "draft")
+            .unwrap();
+
+        assert_eq!(transitions.len(), 1);
+        assert_eq!(transitions[0].to_state, "review")
     }
 }
