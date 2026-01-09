@@ -3,22 +3,18 @@ use crate::error::WorkflowError;
 use crate::workflow::Transition;
 
 use super::definition::Workflow;
-use super::validators::Validator;
-
 use std::collections::HashMap;
 
 use serde_json::Value;
 
 pub struct Engine {
     pub workflows: HashMap<String, Workflow>,
-    pub validators: HashMap<String, Validator>,
 }
 
 impl Engine {
     pub fn new() -> Self {
         Self {
             workflows: HashMap::new(),
-            validators: HashMap::new(),
         }
     }
 
@@ -95,7 +91,7 @@ impl Engine {
         from_state: &str,
         to_state: &str,
         signers: Vec<User>,
-        payload: &str,
+        _payload: &str,
     ) -> Result<bool, WorkflowError> {
         let workflow = self
             .workflows
@@ -113,13 +109,23 @@ impl Engine {
                 ))
             })?;
 
-        let role_validator = Validator::HasRole {
-            required_roles: transition.required_roles.clone(),
-        };
+        let signer_roles: Vec<String> = signers
+            .iter()
+            .flat_map(|s| s.roles.iter().cloned())
+            .collect();
+        let missing_roles: Vec<String> = transition
+            .required_roles
+            .iter()
+            .filter(|r| !signer_roles.contains(r))
+            .cloned()
+            .collect();
 
-        role_validator.validate(payload, signers.clone())?;
-
-        // other validations shld go here
+        if !missing_roles.is_empty() {
+            return Err(WorkflowError::Validation(format!(
+                "Missing required roles: {:?}",
+                missing_roles
+            )));
+        }
 
         Ok(true)
     }
@@ -141,10 +147,9 @@ mod tests {
     #![allow(clippy::unreachable)]
     #![allow(clippy::assertions_on_result_states)]
 
-    use ed25519_dalek::ed25519::Error;
     use serde_json::json;
 
-    use crate::{State, workflow};
+    use crate::State;
 
     use super::*;
 
@@ -214,7 +219,11 @@ mod tests {
 
         let result = engine.load_workflow(workflow_json);
 
-        assert!(result.is_ok());
+        assert!(
+            result.is_ok(),
+            "Workflow failed to load: {:?}",
+            result.err()
+        );
 
         let workflow = result.unwrap();
 

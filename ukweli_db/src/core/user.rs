@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey, ed25519::signature::SignerMut};
+use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
 use rand::rngs::OsRng;
 
 #[derive(Clone, Debug)]
