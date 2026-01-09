@@ -65,7 +65,7 @@ impl Engine {
             .map_err(|e| WorkflowError::Parsing(format!("Failed to parse workflow: {}", e)))?;
 
         self.workflows.insert(workflow.id.clone(), workflow.clone());
-        
+
         Ok(workflow)
     }
 
@@ -169,33 +169,63 @@ mod tests {
         assert!(workflow.is_err());
     }
 
-    fn load_workflow() {
-        let mut engine = Engine::new();
+    fn create_test_workflow() -> HashMap<String, Value> {
+        let workflow = json!({
+          "workflow_id": "land_registry_v1",
+          "name": "Land Registry",
+          "description": "Immutable workflow for property ownership transfers",
+          "initial_state": "application",
+          "states": [
+            {"id": "application", "label": "Application Submitted"},
+            {"id": "verification", "label": "Verify Documents"},
+            {"id": "approval", "label": "Approve Transfer"},
+            {"id": "registered", "label": "Ownership Registered"}
+          ],
+          "transitions": [
+            {
+              "from_state": "application",
+              "to_state": "verification",
+              "name": "submit",
+              "required_roles": ["applicant"]
+            },
+            {
+              "from_state": "verification",
+              "to_state": "approval",
+              "name": "verify",
+              "required_roles": ["inspector"]
+            },
+            {
+              "from_state": "approval",
+              "to_state": "registered",
+              "name": "finalize",
+              "required_roles": ["officer", "clerk"]
+            }
+          ]
+        }
+        );
 
-        let workflow_json = json!({
-            "workflow_id": "gov_procurement_v1",
-            "name": "Government Procurement Process",
-            "description": "Transparent tender and award process",
-            "initial_state": "draft",
-            "states": [
-                {"id": "draft", "label": "Tender Draft"},
-                {"id": "open", "label": "Open for Bids"}
-            ],
-            "transitions": [
-                {
-                    "from_state": "draft",
-                    "to_state": "open",
-                    "name": "Publish Tender",
-                    "required_roles": ["procuring_officer", "finance_approver"],
-                    "validations": ["always_true"],
-                    "min_time_in_state": 0
-                }
-            ]
-        });
-
-        let loaded_workflow = engine.load_workflow(workflow_json);
+        serde_json::from_value(workflow).expect("Failed to create test workflow")
     }
 
     #[test]
-    fn test_workflow_loads() {}
+    fn test_workflow_loads() {
+        let mut engine = Engine::new();
+        let workflow_json = create_test_workflow();
+
+        let result = engine.load_workflow(workflow_json);
+
+        assert!(result.is_ok());
+
+        let workflow = result.unwrap();
+
+        assert_eq!(workflow.id, "land_registry_v1");
+        assert_eq!(workflow.states.len(), 4);
+        assert_eq!(workflow.transitions.len(), 3);
+
+        let fetched_workflow = engine.workflows.get("land_registry_v1");
+        assert!(fetched_workflow.is_some());
+
+        let fetched_workflow = fetched_workflow.unwrap();
+        assert_eq!(fetched_workflow.id, "land_registry_v1");
+    }
 }
