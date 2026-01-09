@@ -6,5 +6,5 @@ pub struct Transition {
     pub to_state: String,
     pub name: String,
     pub required_roles: Vec<String>,
-    
+    pub validations: Vec<String>,
 }

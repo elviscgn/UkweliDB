@@ -57,6 +57,18 @@ impl Engine {
         Ok(workflow)
     }
 
+    pub fn load_workflow_from_json(
+        &mut self,
+        workflow_json: Value,
+    ) -> Result<Workflow, WorkflowError> {
+        let workflow: Workflow = serde_json::from_value(workflow_json)
+            .map_err(|e| WorkflowError::Parsing(format!("Failed to parse workflow: {}", e)))?;
+
+        self.workflows.insert(workflow.id.clone(), workflow.clone());
+        
+        Ok(workflow)
+    }
+
     pub fn get_valid_transitions(
         &self,
         workflow_id: &str,
@@ -117,4 +129,73 @@ impl Default for Engine {
     fn default() -> Self {
         Self::new()
     }
+}
+
+#[cfg(test)]
+mod tests {
+    // only in tests :) I want them to panic here but never during runtime
+    #![allow(clippy::unwrap_used)]
+    #![allow(clippy::expect_used)]
+    #![allow(clippy::indexing_slicing)]
+    #![allow(clippy::panic)]
+    #![allow(clippy::unreachable)]
+    #![allow(clippy::assertions_on_result_states)]
+
+    use ed25519_dalek::ed25519::Error;
+    use serde_json::json;
+
+    use crate::{State, workflow};
+
+    use super::*;
+
+    #[test]
+    fn test_workflow_empty_states() {
+        let workflow = Workflow::new("test_0", "Test", "testtt", vec![], vec![], "");
+
+        assert!(workflow.is_err())
+    }
+
+    #[test]
+    fn test_workflow_state_not_in_states() {
+        let states = vec![State {
+            id: "s1".to_string(),
+            label: "state 1".to_string(),
+        }];
+
+        let transitions: Vec<Transition> = vec![];
+
+        let workflow = Workflow::new("test_0", "Test", "testtt", states, transitions, "s2");
+
+        assert!(workflow.is_err());
+    }
+
+    fn load_workflow() {
+        let mut engine = Engine::new();
+
+        let workflow_json = json!({
+            "workflow_id": "gov_procurement_v1",
+            "name": "Government Procurement Process",
+            "description": "Transparent tender and award process",
+            "initial_state": "draft",
+            "states": [
+                {"id": "draft", "label": "Tender Draft"},
+                {"id": "open", "label": "Open for Bids"}
+            ],
+            "transitions": [
+                {
+                    "from_state": "draft",
+                    "to_state": "open",
+                    "name": "Publish Tender",
+                    "required_roles": ["procuring_officer", "finance_approver"],
+                    "validations": ["always_true"],
+                    "min_time_in_state": 0
+                }
+            ]
+        });
+
+        let loaded_workflow = engine.load_workflow(workflow_json);
+    }
+
+    #[test]
+    fn test_workflow_loads() {}
 }

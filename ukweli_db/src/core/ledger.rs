@@ -182,6 +182,7 @@ impl Default for Ledger {
         Self::new()
     }
 }
+
 #[cfg(test)]
 mod tests {
     // only in tests :) I want them to panic here but never during runtime
