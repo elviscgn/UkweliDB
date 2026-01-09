@@ -1,7 +1,7 @@
-use std::{collections::HashMap, fmt::format};
+use std::collections::HashMap;
 
 use crate::{LedgerError, core::User};
-use ed25519_dalek::{VerifyingKey, ed25519::signature};
+use ed25519_dalek::VerifyingKey;
 use sha256::digest;
 
 use super::record::Record;
