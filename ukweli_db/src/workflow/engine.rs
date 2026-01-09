@@ -147,6 +147,8 @@ mod tests {
     #![allow(clippy::unreachable)]
     #![allow(clippy::assertions_on_result_states)]
 
+    use std::result;
+
     use serde_json::json;
 
     use crate::State;
@@ -256,6 +258,48 @@ mod tests {
             .unwrap();
 
         assert_eq!(transitions.len(), 1);
-        assert_eq!(transitions[0].to_state, "review")
+        assert_eq!(transitions[0].to_state, "review");
+
+        let transitions = engine
+            .get_valid_transitions("test_workflow", "review")
+            .unwrap();
+
+        assert_eq!(transitions.len(), 2);
+
+        let to_states = transitions
+            .iter()
+            .map(|t| t.to_state.as_str())
+            .collect::<Vec<&str>>();
+
+        assert_eq!(to_states, vec!["published", "draft"]);
+
+        let transitions = engine
+            .get_valid_transitions("test_workflow", "archived")
+            .unwrap();
+
+        assert_eq!(transitions.len(), 0);
+    }
+
+    #[test]
+    fn test_validate_transition_success() {
+        let mut engine = Engine::new();
+        let workflow_json = create_test_workflow();
+
+        engine.load_workflow(workflow_json).unwrap();
+
+        let mut editor_user = User::new("user_editor");
+        editor_user.add_role("editor");
+
+        let result = engine
+            .validate_transition(
+                "test_workflow",
+                "draft",
+                "review",
+                vec![editor_user],
+                "hmmm",
+            )
+            .unwrap();
+
+        assert!(result)
     }
 }
