@@ -176,7 +176,7 @@ mod tests {
 
     fn create_test_workflow() -> HashMap<String, Value> {
         let workflow = json!({
-          "workflow_id": "land_registry_v1",
+          "id": "land_registry_v1",
           "name": "Land Registry",
           "description": "Immutable workflow for property ownership transfers",
           "initial_state": "application",
