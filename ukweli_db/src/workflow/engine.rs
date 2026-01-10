@@ -149,7 +149,7 @@ mod tests {
 
     use serde_json::json;
 
-    use crate::State;
+    use crate::WorkflowState;
 
     use super::*;
 
@@ -162,7 +162,7 @@ mod tests {
 
     #[test]
     fn test_workflow_state_not_in_states() {
-        let states = vec![State {
+        let states = vec![WorkflowState {
             id: "s1".to_string(),
             label: "state 1".to_string(),
         }];

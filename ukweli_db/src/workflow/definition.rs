@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::state::State;
+use super::state::WorkflowState;
 use super::transition::Transition;
 
 use crate::error::WorkflowError;
@@ -10,7 +10,7 @@ pub struct Workflow {
     pub id: String,
     pub name: String,
     pub description: String,
-    pub states: Vec<State>,
+    pub states: Vec<WorkflowState>,
     pub transitions: Vec<Transition>,
     pub initial_state: String,
 }
@@ -20,7 +20,7 @@ impl Workflow {
         id: &str,
         name: &str,
         description: &str,
-        states: Vec<State>,
+        states: Vec<WorkflowState>,
         transitions: Vec<Transition>,
         initial_state: &str,
     ) -> Result<Self, WorkflowError> {

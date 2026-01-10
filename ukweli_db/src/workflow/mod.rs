@@ -5,5 +5,5 @@ pub mod transition;
 
 pub use definition::Workflow;
 pub use engine::Engine;
-pub use state::State;
+pub use state::WorkflowState;
 pub use transition::Transition;
