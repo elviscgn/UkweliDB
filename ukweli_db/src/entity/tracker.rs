@@ -19,9 +19,6 @@ impl Tracker {
             EntityState::new(entity_id, workflow_id, initial_state, record_index),
         );
 
-
         Tracker { entities }
     }
-
-    
 }
