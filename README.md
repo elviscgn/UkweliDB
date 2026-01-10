@@ -1,6 +1,17 @@
-# UkweliDB
-A tamper proof, verifiable, immutable database, written from scratch in Rust.
+<h1 align="center">UkweliDB</h1>
+<p align="center">
+  <a href="https://github.com/elviscgn/UkweliDB/actions/workflows/rust.yml">
+    <img src="https://github.com/elviscgn/UkweliDB/actions/workflows/rust.yml/badge.svg"/></a>
+  &nbsp;
+  <a href="https://github.com/elviscgn/UkweliDB">
+    <img src="https://img.shields.io/badge/built_with-Rust-dca282.svg?style=flat-square"/></a>
+  &nbsp;
+  <a href="https://github.com/elviscgn/UkweliDB/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-00bfff.svg?style=flat-square"/>
+  </a>
+</p>
 
+A tamper proof, verifiable, immutable database, written from scratch in Rust.
 
 <h1>How it all works </h1>
 <h2>1. Core Idea </h2>
