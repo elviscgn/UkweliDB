@@ -12,4 +12,4 @@ pub mod workflow;
 pub use core::{Ledger, Record};
 pub use entity::{EntityState, Tracker};
 pub use error::LedgerError;
-pub use workflow::{WorkflowState, Workflow};
+pub use workflow::{Workflow, WorkflowState};
