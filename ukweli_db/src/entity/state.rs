@@ -3,7 +3,7 @@ pub struct EntityState {
     pub workflow_id: String,
     pub current_state: String,
     // state_entered_at: String, undecided yet
-    pub last_record_index: String,
+    pub last_record_index: usize,
 }
 
 impl EntityState {
@@ -12,7 +12,7 @@ impl EntityState {
             id: id.to_string(),
             workflow_id: workflow_id.to_string(),
             current_state: current_state.to_string(),
-            last_record_index: last_record_index.to_string(),
+            last_record_index,
         }
     }
 }

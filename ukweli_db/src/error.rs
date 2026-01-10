@@ -26,3 +26,9 @@ pub enum WorkflowError {
     #[error("{0}")]
     Parsing(String),
 }
+
+#[derive(Error, Debug)]
+pub enum EntityError {
+    #[error("{0}")]
+    Update(String),
+}
