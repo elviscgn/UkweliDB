@@ -7,7 +7,7 @@
     <img src="https://img.shields.io/badge/built_with-Rust-dca282.svg?style=flat-square"/></a>
   &nbsp;
   <a href="https://github.com/elviscgn/UkweliDB/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-00bfff.svg?style=flat-square"/>
+    <img src="https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat-square"/>
   </a>
 </p>
 
