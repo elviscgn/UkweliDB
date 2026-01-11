@@ -158,8 +158,13 @@ impl Ledger {
                 .join(",");
 
             let material = format!(
-                "{} {} {} {}",
-                record.index, record.prev_hash, record.payload_hash, joined_signers
+                "{} {} {} {} {} {}",
+                record.index,
+                record.prev_hash,
+                record.payload_hash,
+                record.timestamp,
+                record.nonce,
+                joined_signers
             );
             let computed_record_hash = digest(material);
             if computed_record_hash != record.record_hash {
