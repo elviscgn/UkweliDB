@@ -1,4 +1,8 @@
-use std::collections::HashMap;
+use core::time;
+use std::{
+    collections::HashMap,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use ed25519_dalek::Signature;
 use sha256::digest;
@@ -16,10 +20,23 @@ pub struct Record {
 
     pub prev_hash: String,
     pub record_hash: String,
+
+    pub timestamp: u64,
+    pub nonce: u64,
 }
 
 impl Record {
+    #[allow(clippy::expect_used)]
+    // Getting timestamp returns a result meaning I would have to propagate the error an errror I can't meaningfully handle
+    // if this panics you have bigger issues than a panic hence why i'm using expect here
     pub fn new(index: usize, payload: &str, prev_hash: &str, signers: Vec<User>) -> Self {
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("System clock is set before UNIX epoch")
+            .as_secs();
+
+        let nonce = rand::random();
+
         let payload_hash = digest(payload);
         let joined_signers = signers
             .iter()
@@ -28,8 +45,8 @@ impl Record {
             .join(",");
 
         let material = format!(
-            "{} {} {} {}",
-            index, prev_hash, payload_hash, joined_signers
+            "{} {} {} {} {} {}",
+            index, prev_hash, payload_hash, timestamp, nonce, joined_signers
         );
 
         let record_hash = digest(material);
@@ -50,6 +67,8 @@ impl Record {
 
             record_hash,
             prev_hash: prev_hash.to_string(),
+            timestamp,
+            nonce,
         }
     }
 }

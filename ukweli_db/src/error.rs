@@ -13,6 +13,18 @@ pub enum LedgerError {
 
     #[error("{0}")]
     ChainValidation(String),
+
+    #[error("Clock error: {0}")]
+    ClockError(String),
+
+    #[error("No signers provided")]
+    NoSigners,
+
+    #[error("Duplicate record detected")]
+    DuplicateRecord,
+
+    #[error("Timestamp out of acceptable range")]
+    InvalidTimestamp,
 }
 
 #[derive(Error, Debug)]
