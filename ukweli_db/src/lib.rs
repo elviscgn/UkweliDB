@@ -6,6 +6,7 @@
 
 pub mod core;
 pub mod error;
+pub mod storage;
 pub mod workflow;
 
 pub use core::{Ledger, Record};
