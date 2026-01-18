@@ -98,3 +98,28 @@ pub struct DatabaseFooter {
     pub integrity_hash: [u8; 32], // sha256 of entire file before footer
     pub total_file_size: u64,
 }
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::unwrap_used)]
+
+    use super::*;
+    // use crate::core::Ledger;
+    // use std::fs;
+
+    #[test]
+    fn test_header_creation() {
+        let header = DatabaseHeader::new(100, 128, 5000);
+
+        assert_eq!(header.magic, MAGIC_NUMBER);
+        assert_eq!(header.version_major, 1);
+        assert_eq!(header.version_minor, 0);
+        assert_eq!(header.record_count, 100);
+        assert_eq!(header.body_offset, 128);
+        assert_eq!(header.footer_offset, 5000);
+        assert_eq!(header.reserved.len(), 40);
+
+        // all reserved bytes should be zero
+        assert!(header.reserved.iter().all(|&b| b == 0));
+    }
+}
