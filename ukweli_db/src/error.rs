@@ -44,3 +44,27 @@ pub enum EntityError {
     #[error("{0}")]
     Update(String),
 }
+
+#[derive(Error, Debug)]
+pub enum StorageError {
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("Not a valid Ukweli database file")]
+    InvalidMagic,
+
+    #[error("Unsupported version: {0}")]
+    UnsupportedVersion(u16),
+
+    #[error("Serialization error: {0}")]
+    Serialization(String),
+
+    #[error("Deserialization error: {0}")]
+    Deserialization(String),
+
+    #[error("Checksum mismatch - database file may be corrupted")]
+    ChecksumMismatch,
+
+    #[error("Database validation failed: {0}")]
+    ValidationFailed(String),
+}
