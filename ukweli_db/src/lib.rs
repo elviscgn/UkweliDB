@@ -11,4 +11,5 @@ pub mod workflow;
 
 pub use core::{Ledger, Record};
 pub use error::LedgerError;
+pub use storage::persitence;
 pub use workflow::{Workflow, WorkflowState};

@@ -617,6 +617,7 @@ dependencies = [
 name = "ukweli_db"
 version = "0.1.0"
 dependencies = [
+ "bytecheck",
  "ed25519-dalek",
  "memmap2",
  "rand",
