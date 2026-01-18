@@ -1,7 +1,11 @@
 use rkyv::bytecheck::CheckBytes;
 // use rkyv::ser::serializers::AllocSerializer;
 use crate::core::User;
+use crate::error::StorageError;
 use rkyv::{Archive, Deserialize, Serialize};
+use std::fs::{File, OpenOptions};
+// use std::io::Write;
+use std::path::Path;
 
 pub const MAGIC_NUMBER: [u8; 4] = [0x55, 0x4B, 0x57, 0x4C]; // "UKWL"
 pub const VERSION_MAJOR: u8 = 1;
@@ -97,6 +101,22 @@ pub struct DatabaseBody {
 pub struct DatabaseFooter {
     pub integrity_hash: [u8; 32], // sha256 of entire file before footer
     pub total_file_size: u64,
+}
+
+pub struct DatabaseWriter {
+    file: File,
+}
+
+impl DatabaseWriter {
+    pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, StorageError> {
+        let file = OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(path)?;
+
+        Ok(Self { file })
+    }
 }
 
 #[cfg(test)]
