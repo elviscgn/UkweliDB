@@ -1,5 +1,6 @@
 use rkyv::bytecheck::CheckBytes;
 // use rkyv::ser::serializers::AllocSerializer;
+use crate::core::User;
 use rkyv::{Archive, Deserialize, Serialize};
 
 pub const MAGIC_NUMBER: [u8; 4] = [0x55, 0x4B, 0x57, 0x4C]; // "UKWL"
@@ -68,3 +69,32 @@ pub struct SerializableRecord {
     pub nonce: u64,
 }
 
+#[derive(Archive, Serialize, Deserialize, Debug, Clone, CheckBytes)]
+pub struct SerializableUser {
+    pub user_id: String,
+    pub verifying_key_bytes: Vec<u8>,
+    pub roles: Vec<String>,
+}
+
+impl From<&User> for SerializableUser {
+    fn from(user: &User) -> Self {
+        Self {
+            user_id: user.user_id.clone(),
+            verifying_key_bytes: user.verifying_key.to_bytes().to_vec(),
+            roles: user.roles.iter().cloned().collect(),
+        }
+    }
+}
+
+#[derive(Archive, Serialize, Deserialize, Debug, CheckBytes)]
+
+pub struct DatabaseBody {
+    pub records: Vec<SerializableRecord>,
+    pub users: Vec<SerializableUser>,
+}
+
+#[derive(Archive, Serialize, Deserialize, Debug, CheckBytes)]
+pub struct DatabaseFooter {
+    pub integrity_hash: [u8; 32], // sha256 of entire file before footer
+    pub total_file_size: u64,
+}
