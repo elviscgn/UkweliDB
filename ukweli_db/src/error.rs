@@ -53,8 +53,8 @@ pub enum StorageError {
     #[error("Not a valid Ukweli database file")]
     InvalidMagic,
 
-    #[error("Unsupported version: {0}")]
-    UnsupportedVersion(u16),
+    #[error("Unsupported database version: {0}.{1}")]
+    UnsupportedVersion(u8, u8),
 
     #[error("Serialization error: {0}")]
     Serialization(String),
