@@ -53,3 +53,18 @@ impl DatabaseHeader {
         }
     }
 }
+
+#[derive(Archive, Serialize, Deserialize, Debug, Clone, CheckBytes)]
+#[rkyv(derive(Debug))]
+pub struct SerializableRecord {
+    pub index: usize,
+    pub payload: String,
+    pub payload_hash: String,
+    pub signer_ids: Vec<String>,
+    pub signatures: Vec<(String, Vec<u8>)>, // (user_id, signature_bytes)
+    pub prev_hash: String,
+    pub record_hash: String,
+    pub timestamp: u64,
+    pub nonce: u64,
+}
+
