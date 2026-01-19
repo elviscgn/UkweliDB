@@ -65,8 +65,11 @@ mod tests {
 
     // use super::*;
 
+    use crate::core::{Ledger, User};
     use crate::storage::database::{DatabaseHeader, MAGIC_NUMBER};
-    // use std::fs;
+    use crate::storage::reader::DatabaseReader;
+    use crate::storage::writer::DatabaseWriter;
+    use std::fs;
 
     #[test]
     fn test_header_creation() {
@@ -82,5 +85,42 @@ mod tests {
 
         // all reserved bytes should be zero
         assert!(header.reserved.iter().all(|&b| b == 0));
+    }
+
+    #[test]
+    fn test_write_and_read_ledger() {
+        let mut ledger = Ledger::new();
+
+        let user1 = User::new("0xElvis");
+        let user2 = User::new("0xChege");
+
+        ledger.register_user(user1.clone());
+        ledger.register_user(user2.clone());
+
+        ledger
+            .add_record("First transaction", vec![user1.clone()])
+            .unwrap();
+        ledger
+            .add_record("Second transaction", vec![user1, user2])
+            .unwrap();
+
+        let test_path = "test_db.ukweli";
+
+        // Write
+        let mut writer = DatabaseWriter::new(test_path).unwrap();
+        writer.write_ledger(&ledger).unwrap();
+
+        // read
+        let reader = DatabaseReader::new(test_path).unwrap();
+        let (header, body) = reader.read_and_verify().unwrap();
+
+        assert_eq!(header.magic, MAGIC_NUMBER);
+        assert_eq!(header.version_major, 1);
+        assert_eq!(header.version_minor, 0);
+        assert_eq!(header.record_count, 3); // Genesis + 2 records
+        assert_eq!(body.records.len(), 3);
+
+        // cleanup
+        fs::remove_file(test_path).unwrap();
     }
 }
