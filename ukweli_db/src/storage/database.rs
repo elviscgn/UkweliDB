@@ -6,7 +6,7 @@ use crate::storage::persitence::{SerializableRecord, SerializableUser};
 pub const MAGIC_NUMBER: [u8; 4] = [0x55, 0x4B, 0x57, 0x4C]; // "UKWL"
 pub const VERSION_MAJOR: u8 = 1;
 pub const VERSION_MINOR: u8 = 0; // might be redundant but good to keep for now
-pub const HEADER_SIZE: usize = 64;
+pub const HEADER_SIZE: usize = 120;
 
 // TODO
 // https://github.com/elviscgn/UkweliDB/issues/1#issuecomment-3734544932
