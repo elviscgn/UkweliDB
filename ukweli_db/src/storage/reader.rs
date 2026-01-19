@@ -47,8 +47,8 @@ impl DatabaseReader {
         })?;
 
         let computed_checksum = sha256::digest(body_bytes);
-        let computed_bytes: [u8; 32] = computed_checksum
-            .as_bytes()
+        let computed_bytes: [u8; 32] = hex::decode(&computed_checksum)
+            .map_err(|_| StorageError::Deserialization("Hash conversion error".to_string()))?
             .try_into()
             .map_err(|_| StorageError::Deserialization("Hash conversion error".to_string()))?;
 

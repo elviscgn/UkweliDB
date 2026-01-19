@@ -619,6 +619,7 @@ version = "0.1.0"
 dependencies = [
  "bytecheck",
  "ed25519-dalek",
+ "hex",
  "memmap2",
  "rand",
  "rkyv",

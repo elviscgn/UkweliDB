@@ -7,6 +7,7 @@ use std::io::Write;
 use crate::core::Ledger;
 use crate::storage::database::{DatabaseBody, DatabaseFooter, DatabaseHeader, HEADER_SIZE};
 use crate::storage::persitence::{SerializableRecord, SerializableUser};
+use hex;
 use std::fs::{File, OpenOptions};
 use std::path::Path;
 pub struct DatabaseWriter {
@@ -40,8 +41,8 @@ impl DatabaseWriter {
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
 
         let body_checksum = sha256::digest(body_bytes.as_slice());
-        let checksum_bytes: [u8; 32] = body_checksum
-            .as_bytes()
+        let checksum_bytes: [u8; 32] = hex::decode(&body_checksum)
+            .map_err(|e| StorageError::Serialization(format!("Hex decode failed: {}", e)))?
             .try_into()
             .map_err(|_| StorageError::Serialization("Checksum conversion failed".to_string()))?;
 
@@ -55,14 +56,19 @@ impl DatabaseWriter {
         let header_bytes = rkyv::to_bytes::<RkyvError>(&header)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
 
+        println!("Serialized header size: {}", header_bytes.len());
+
         let mut pre_footer_data = Vec::with_capacity(header_bytes.len() + body_bytes.len());
         pre_footer_data.extend_from_slice(&header_bytes);
         pre_footer_data.extend_from_slice(&body_bytes);
 
         let integrity_hash = sha256::digest(&pre_footer_data);
-        let integrity_bytes: [u8; 32] = integrity_hash.as_bytes().try_into().map_err(|_| {
-            StorageError::Serialization("Integrity hash conversion failed".to_string())
-        })?;
+        let integrity_bytes: [u8; 32] = hex::decode(&integrity_hash)
+            .map_err(|e| StorageError::Serialization(format!("Hex decode failed: {}", e)))?
+            .try_into()
+            .map_err(|_| {
+                StorageError::Serialization("Integrity hash conversion failed".to_string())
+            })?;
 
         let footer = DatabaseFooter {
             integrity_hash: integrity_bytes,
