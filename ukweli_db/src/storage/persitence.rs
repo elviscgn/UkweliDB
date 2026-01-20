@@ -193,7 +193,7 @@ mod tests {
 
     #[test]
     fn test_writer_creates_file() {
-        let test_path = "test_writer_creates.db";
+        let test_path = "test_writer_creates.ukweli";
         let _ = fs::remove_file(test_path);
 
         assert!(!std::path::Path::new(test_path).exists());
