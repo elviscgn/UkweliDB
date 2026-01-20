@@ -12,5 +12,5 @@ serde_json = "1.0"
 rkyv = { version = "0.8", features = ["bytecheck", "std"] }
 bytecheck = "0.8"
 memmap2 = "0.9"
-serde = { version = "1.0", features = ["derive"] } 
+serde = { version = "1.0", features = ["derive"] }
 hex = "0.4.3"
