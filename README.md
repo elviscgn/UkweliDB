@@ -1,4 +1,6 @@
-<h1 align="center">UkweliDB</h1>
+<p align="center">
+    <img src="https://github.com/elviscgn/UkweliDB/blob/main/assets/banner.png"/></a>
+</p>
 <p align="center">
   <a href="https://github.com/elviscgn/UkweliDB/actions/workflows/rust.yml">
     <img src="https://github.com/elviscgn/UkweliDB/actions/workflows/rust.yml/badge.svg"/></a>
