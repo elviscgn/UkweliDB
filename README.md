@@ -87,3 +87,5 @@ transitions:
 
 - https://auth0.com/blog/what-are-verifiable-credentials-why-you-should-care/
 
+- https://www.youtube.com/watch?v=wI4hKwl1Cn4
+
