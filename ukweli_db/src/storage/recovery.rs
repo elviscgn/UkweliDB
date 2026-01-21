@@ -335,4 +335,45 @@ mod tests {
         let _ = fs::remove_file(format!("{}.wal", test_path));
         let _ = fs::remove_file(format!("{}.backup", test_path));
     }
+
+    #[test]
+    fn test_snapshot() {
+        let test_path = "test_snapshot.ukweli";
+        let snapshot_path = "test_snapshot_copy.ukweli";
+
+        let _ = fs::remove_file(test_path);
+        let _ = fs::remove_file(snapshot_path);
+
+        let mut ledger = Ledger::new();
+        let user1 = User::new("snapshot_user");
+        ledger.register_user(user1.clone());
+        ledger
+            .add_record("snapshot transaction", vec![user1])
+            .unwrap();
+
+        RecoveryManager::create_snapshot(&ledger, snapshot_path).unwrap();
+
+        assert!(RecoveryManager::verify_file(snapshot_path).unwrap());
+
+        fs::remove_file(snapshot_path).unwrap();
+    }
+
+    #[test]
+    fn test_verify_file() {
+        let test_path = "test_verify.ukweli";
+
+        let _ = fs::remove_file(test_path);
+
+        let mut ledger = Ledger::new();
+        let user = User::new("verify_user");
+        ledger.register_user(user.clone());
+        ledger.add_record("test", vec![user]).unwrap();
+
+        let mut writer = DatabaseWriter::new(test_path).unwrap();
+        writer.write_ledger(&ledger).unwrap();
+
+        assert!(RecoveryManager::verify_file(test_path).unwrap());
+
+        fs::remove_file(test_path).unwrap();
+    }
 }
