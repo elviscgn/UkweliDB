@@ -297,3 +297,42 @@ impl RecoveryManager {
         Ok(true)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::unwrap_used)]
+    #![allow(clippy::expect_used)]
+    #![allow(clippy::indexing_slicing)]
+    #![allow(clippy::panic)]
+    #![allow(unused_must_use)]
+
+    use super::*;
+    use crate::core::{Ledger, User};
+    use std::fs;
+
+    #[test]
+    fn test_recovery_and_compact() {
+        let test_path = "test_recovery.ukweli";
+
+        let _ = fs::remove_file(test_path);
+        let _ = fs::remove_file(format!("{}.wal", test_path));
+        let _ = fs::remove_file(format!("{}.backup", test_path));
+
+        let mut ledger = Ledger::new();
+        let user1 = User::new("recovery_user");
+        ledger.register_user(user1.clone());
+        ledger.add_record("test transaction", vec![user1]).unwrap();
+
+        let mut writer = DatabaseWriter::new(test_path).unwrap();
+        writer.write_ledger(&ledger).unwrap();
+
+        let recovered = RecoveryManager::recover_ledger(test_path).unwrap();
+        assert_eq!(recovered.length(), ledger.length());
+
+        assert!(RecoveryManager::verify_file(test_path).unwrap());
+
+        fs::remove_file(test_path).unwrap();
+        let _ = fs::remove_file(format!("{}.wal", test_path));
+        let _ = fs::remove_file(format!("{}.backup", test_path));
+    }
+}
