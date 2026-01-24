@@ -40,7 +40,6 @@ impl User {
         self.roles.remove(role);
     }
 
-
     // export priv keys as bytes
     pub fn signing_key_bytes(&self) -> [u8; 32] {
         self.signing_key.to_bytes()
@@ -70,7 +69,6 @@ impl User {
     ) -> Result<Self, ed25519_dalek::SignatureError> {
         let verifying_key = VerifyingKey::from_bytes(verifying_key_bytes)?;
 
-     
         let signing_key = SigningKey::from_bytes(&[0u8; 32]);
 
         Ok(User {
