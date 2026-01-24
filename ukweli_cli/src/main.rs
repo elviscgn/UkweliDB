@@ -1,4 +1,10 @@
-use std::env;
+mod commands;
+mod config;
+mod user_store;
+
+use anyhow::Result;
+use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 // TODO
 // init – initialise database and genesis record #10
@@ -8,7 +14,56 @@ use std::env;
 // workflow list – list available workflows #14
 // record show – inspect records by entity or range #15
 // state current – compute current entity state by replay #16
-fn main() {
-    let args = env::args();
-    println!("{:?}", args);
+
+#[derive(Parser)]
+#[command(name = "ukweli")]
+// #[command(author, version, about, long_about = None)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    Init {
+        /// custom database path (default: ~/.ukweli/default.ukweli)
+        #[arg(short, long)]
+        db_path: Option<PathBuf>,
+    },
+    // /// user management comms
+    // User {
+    //     #[command(subcommand)]
+    //     command: UserCommands,
+    // },
+
+    // #[command(subcommand)]
+    // Record(RecordCommands),
+
+    // #[command(subcommand)]
+    // Workflow(WorkflowCommands),
+
+    // #[command(subcommand)]
+    // State(StateCommands),
+}
+
+#[derive(Subcommand)]
+enum UserCommands {
+    Create { user_id: String },
+
+    List,
+
+    Delete { user_id: String },
+
+    Show { user_id: String },
+}
+
+fn main() -> Result<()> {
+    let cli = Cli::parse();
+
+    match cli.command {
+        Commands::Init { db_path } => {
+            commands::init::run(db_path)?;
+        }
+    }
+    Ok(())
 }
