@@ -1,6 +1,6 @@
 mod commands;
 mod config;
-mod user_store;
+// mod user_store;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
