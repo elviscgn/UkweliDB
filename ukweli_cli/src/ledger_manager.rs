@@ -3,7 +3,8 @@ use std::path::Path;
 
 use crate::config::Config;
 use anyhow::Context;
-use ukweli_db::{Ledger, storage::recovery::RecoveryManager};
+use ukweli_db::{Ledger, core::User};
+use ukweli_db::{storage::append::AppendLog, storage::recovery::RecoveryManager};
 
 pub struct LedgerManager {
     pub ledger: Ledger,
@@ -31,10 +32,34 @@ impl LedgerManager {
         let ledger = RecoveryManager::recover_ledger(db_path).context("Failed to load ledger")?;
 
         println!("Loaded {} records", ledger.length());
-        
+
         Ok(Self {
             ledger,
             db_path: db_path.to_path_buf(),
         })
+    }
+
+    pub fn register_user(&mut self, user: User) -> Result<()> {
+        if self.ledger.verify_registry.contains_key(&user.user_id) {
+            bail!(
+                "User '{}' is already registered in the ledger",
+                user.user_id
+            );
+        }
+
+        self.ledger.register_user(user.clone());
+
+        let mut append_log = AppendLog::new(&self.db_path).context("Failed to open append log")?;
+
+        append_log
+            .append_user(&user)
+            .context("Failed to write user to WAL")?;
+
+        println!("User '{}' registered in ledger", user.user_id);
+
+        Ok(())
+    }
+    pub fn ledger(&self) -> &Ledger {
+        &self.ledger
     }
 }
