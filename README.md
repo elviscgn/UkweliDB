@@ -20,7 +20,9 @@ A tamper proof, verifiable, immutable database, written from scratch in Rust.
 <h3>CLI</h3>
 1. <code>cargo run init</code><br>
 2. <code>cargo run user create elvis</code><br>
-3. <code>cargo run -- record append "payload" --signers elvis</code>
+3. <code>cargo run -- record append "payload" --signers elvis</code><br>
+4. <code>cargo run -- record compact</code><br>
+5. <code>cargo run -- record list</code><br>
 
 <h1>How it all works </h1>
 <h2>1. Core Idea </h2>
