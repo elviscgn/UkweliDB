@@ -83,10 +83,10 @@ fn main() -> Result<()> {
                 commands::record::append(payload, signers)?;
             }
             RecordCommands::Verify => {
-                println!("TODO: Verify chain");
+                commands::record::verify()?;
             }
             RecordCommands::Show { index } => {
-                println!("TODO: Show record {}", index);
+                commands::record::show(index)?;
             }
             RecordCommands::List => {
                 commands::record::list()?;

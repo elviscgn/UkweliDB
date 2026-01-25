@@ -83,8 +83,55 @@ pub fn list() -> Result<()> {
     Ok(())
 }
 
+pub fn show(index: usize) -> Result<()> {
+    let ledger_mgr = LedgerManager::load()?;
+
+    let record = ledger_mgr
+        .ledger()
+        .records
+        .get(index)
+        .with_context(|| format!("Record #{} not found", index))?;
+
+    println!("Record #{}", record.index);
+    println!("─────────────────────────────────────");
+    println!("Payload:      {}", record.payload);
+    println!("Payload Hash: {}", record.payload_hash);
+    println!("Record Hash:  {}", record.record_hash);
+    println!("Previous:     {}", record.prev_hash);
+    println!("Timestamp:    {}", record.timestamp);
+    println!("Nonce:        {}", record.nonce);
+    println!("\nSigners:");
+    for signer in &record.signers {
+        println!(
+            "  • {} (roles: {})",
+            signer.user_id,
+            if signer.roles.is_empty() {
+                "none".to_string()
+            } else {
+                signer
+                    .roles
+                    .iter()
+                    .map(|s| s.as_str())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            }
+        );
+    }
+    println!("\nSignatures:");
+    for (user_id, sig) in &record.signatures {
+        println!("  • {}: {}", user_id, hex::encode(sig.to_bytes()));
+    }
+
+    Ok(())
+}
 pub fn compact() -> Result<()> {
     let ledger_mgr = LedgerManager::load()?;
     ledger_mgr.compact()?;
+    Ok(())
+}
+
+pub fn verify() -> Result<()> {
+    let ledger_mgr = LedgerManager::load()?;
+    ledger_mgr.verify_chain()?;
     Ok(())
 }

@@ -97,4 +97,16 @@ impl LedgerManager {
 
         Ok(())
     }
+
+    pub fn verify_chain(&self) -> Result<bool> {
+        println!("Verifying chain integrity...");
+
+        self.ledger
+            .verify_chain()
+            .context("Chain verification failed")?;
+
+        println!("Chain is valid");
+
+        Ok(true)
+    }
 }
