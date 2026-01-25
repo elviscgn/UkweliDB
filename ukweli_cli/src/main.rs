@@ -18,7 +18,7 @@ use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(name = "ukweli")]
-// #[command(author, version, about, long_about = None)]
+#[command(author, version, about, long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -36,10 +36,8 @@ enum Commands {
     //     #[command(subcommand)]
     //     command: UserCommands,
     // },
-
-    // #[command(subcommand)]
-    // Record(RecordCommands),
-
+    #[command(subcommand)]
+    Record(RecordCommands),
     // #[command(subcommand)]
     // Workflow(WorkflowCommands),
 
@@ -58,6 +56,24 @@ enum UserCommands {
     Show { user_id: String },
 }
 
+#[derive(Subcommand)]
+enum RecordCommands {
+    Append {
+        payload: String,
+
+        #[arg(short, long, value_delimiter = ',')]
+        signers: Vec<String>,
+    },
+
+    Verify,
+
+    Show {
+        index: usize,
+    },
+
+    List,
+}
+
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
@@ -65,6 +81,21 @@ fn main() -> Result<()> {
         Commands::Init { db_path } => {
             commands::init::run(db_path)?;
         }
+
+        Commands::Record(command) => match command {
+            RecordCommands::Append { payload, signers } => {
+                commands::record::append(payload, signers)?;
+            }
+            RecordCommands::Verify => {
+                println!("TODO: Verify chain");
+            }
+            RecordCommands::Show { index } => {
+                println!("TODO: Show record {}", index);
+            }
+            RecordCommands::List => {
+                println!("TODO: List all records");
+            }
+        },
     }
     Ok(())
 }
