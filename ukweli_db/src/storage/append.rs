@@ -1,6 +1,3 @@
-// FILE LOCATION: src/storage/append.rs
-// Handles incremental append operations for efficiency (Write-Ahead Log)
-
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
@@ -59,7 +56,6 @@ impl AppendEntry {
     }
 
     pub fn from_bytes(bytes: &[u8; ENTRY_HEADER_SIZE]) -> Result<Self, StorageError> {
-        // Use get() to avoid indexing/slicing panic
         let magic_slice = bytes.get(0..4).ok_or_else(|| {
             StorageError::Deserialization("Failed to read magic bytes".to_string())
         })?;
@@ -131,24 +127,19 @@ impl AppendLog {
     pub fn append_record(&mut self, record: &Record) -> Result<(), StorageError> {
         let serializable = SerializableRecord::from(record);
 
-        // Serialize record data using to_bytes
         let data_bytes = rkyv::to_bytes::<rkyv::rancor::Error>(&serializable)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
 
-        // Calculate checksum with hex decode
         let checksum_str = sha256::digest(data_bytes.as_slice());
         let checksum: [u8; 32] = hex::decode(&checksum_str)
             .map_err(|e| StorageError::Serialization(format!("Hex decode failed: {}", e)))?
             .try_into()
             .map_err(|_| StorageError::Serialization("Checksum conversion failed".to_string()))?;
 
-        // Create entry header
         let entry = AppendEntry::new(1, data_bytes.len() as u32, checksum);
 
-        // Write entry header as raw bytes
         self.file.write_all(&entry.to_bytes())?;
 
-        // Write data
         self.file.write_all(&data_bytes)?;
         self.file.flush()?;
 
@@ -158,24 +149,19 @@ impl AppendLog {
     pub fn append_user(&mut self, user: &User) -> Result<(), StorageError> {
         let serializable = SerializableUser::from(user);
 
-        // Serialize user data
         let data_bytes = rkyv::to_bytes::<rkyv::rancor::Error>(&serializable)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
 
-        // Calculate checksum with hex decode
         let checksum_str = sha256::digest(data_bytes.as_slice());
         let checksum: [u8; 32] = hex::decode(&checksum_str)
             .map_err(|e| StorageError::Serialization(format!("Hex decode failed: {}", e)))?
             .try_into()
             .map_err(|_| StorageError::Serialization("Checksum conversion failed".to_string()))?;
 
-        // Create entry header
         let entry = AppendEntry::new(2, data_bytes.len() as u32, checksum);
 
-        // Write entry header as raw bytes
         self.file.write_all(&entry.to_bytes())?;
 
-        // Write data
         self.file.write_all(&data_bytes)?;
         self.file.flush()?;
 
@@ -285,7 +271,6 @@ mod tests {
         let test_path = "test_basic_append";
         cleanup_test_files(test_path);
 
-        // Test user append
         {
             let mut append_log = AppendLog::new(test_path).unwrap();
             let user = User::new("test_user");

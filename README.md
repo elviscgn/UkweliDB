@@ -15,6 +15,13 @@
 
 A tamper proof, verifiable, immutable database, written from scratch in Rust.
 
+
+<h1>Getting started</h1>
+<h3>CLI</h3>
+1. <code>cargo run init</code><br>
+2. <code>cargo run user create elvis</code>
+3. <code>cargo run user create elvis</code>
+
 <h1>How it all works </h1>
 <h2>1. Core Idea </h2>
 <details> 

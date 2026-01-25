@@ -8,7 +8,7 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
 // TODO
-// init – initialise database and genesis record #10
+// init – initialise database and genesis record #10 done
 // record append – append signed records to the ledger #11
 // record verify – verify hash chain and signatures #12
 // workflow load – load JSON/YAML workflow definitions #13
@@ -67,6 +67,7 @@ enum RecordCommands {
         index: usize,
     },
     List,
+    Compact,
 }
 
 fn main() -> Result<()> {
@@ -88,7 +89,11 @@ fn main() -> Result<()> {
                 println!("TODO: Show record {}", index);
             }
             RecordCommands::List => {
-                println!("TODO: List all records");
+                commands::record::list()?;
+            }
+
+            RecordCommands::Compact => {
+                commands::record::compact()?;
             }
         },
 
@@ -119,7 +124,7 @@ fn user_create(user_id: &str) -> Result<()> {
 
     UserStore::create_user(user_id)?;
 
-    println!("\n💡 User '{}' can now sign records", user_id);
+    println!("\nUser '{}' can now sign records", user_id);
     println!("   Add roles with: ukweli user add-role {} <role>", user_id);
 
     Ok(())

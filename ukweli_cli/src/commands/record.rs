@@ -33,5 +33,58 @@ pub fn append(payload: String, signer_ids: Vec<String>) -> Result<()> {
 
         signers.push(user);
     }
+
+    let index = ledger_mgr.append_record(&payload, signers)?;
+
+    println!("\n Record appended successfully!");
+    println!("   Index: {}", index);
+    println!(
+        "   Hash: {}",
+        ledger_mgr
+            .ledger()
+            .records
+            .get(index)
+            .map(|r| r.record_hash.as_str())
+            .unwrap_or("unknown")
+    );
+
+    Ok(())
+}
+
+pub fn list() -> Result<()> {
+    let ledger_mgr = LedgerManager::load()?;
+
+    let records = ledger_mgr.ledger().records.len();
+
+    if records == 0 {
+        println!("No records in ledger.");
+        return Ok(());
+    }
+
+    println!("Records in ledger: {}", records);
+    println!();
+
+    for (i, record) in ledger_mgr.ledger().all_records().enumerate() {
+        let signer_list = record
+            .signers
+            .iter()
+            .map(|s| s.user_id.as_str())
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        println!(
+            "#{:<4} | {} | Signers: {}",
+            i,
+            &record.payload.chars().take(50).collect::<String>(),
+            signer_list
+        );
+    }
+
+    Ok(())
+}
+
+pub fn compact() -> Result<()> {
+    let ledger_mgr = LedgerManager::load()?;
+    ledger_mgr.compact()?;
     Ok(())
 }
