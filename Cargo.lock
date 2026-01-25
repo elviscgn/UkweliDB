@@ -859,6 +859,7 @@ dependencies = [
  "anyhow",
  "clap",
  "dirs",
+ "hex",
  "serde",
  "serde_json",
  "ukweli_db",
