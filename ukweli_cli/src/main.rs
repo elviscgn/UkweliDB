@@ -1,6 +1,7 @@
 mod commands;
 mod config;
-// mod user_store;
+mod ledger_manager;
+mod user_store;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
