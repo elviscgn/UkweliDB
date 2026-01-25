@@ -88,10 +88,11 @@ impl UserStore {
             let entry = entry?;
             let path = entry.path();
 
-            if path.extension().and_then(|s| s.to_str()) == Some("json") {
-                if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
-                    users.push(stem.to_string());
-                }
+            if let (Some("json"), Some(stem)) = (
+                path.extension().and_then(|s| s.to_str()),
+                path.file_stem().and_then(|s| s.to_str()),
+            ) {
+                users.push(stem.to_string());
             }
         }
 
