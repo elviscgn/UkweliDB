@@ -223,10 +223,14 @@ impl RecoveryManager {
                         })?;
 
                     if !ledger.verify_registry.contains_key(&ser_user.user_id) {
-                        let mut user = User::new(&ser_user.user_id);
-                        for role in &ser_user.roles {
-                            user.add_role(role);
-                        }
+                        let user = User::from_verifying_key(
+                            &ser_user.user_id,
+                            &verifying_key_bytes,
+                            ser_user.roles.into_iter().collect(),
+                        )
+                        .map_err(|e| {
+                            StorageError::Deserialization(format!("Failed to create user: {}", e))
+                        })?;
 
                         ledger.users.insert(ser_user.user_id.clone(), user);
                         ledger
