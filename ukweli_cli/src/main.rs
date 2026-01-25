@@ -31,11 +31,12 @@ enum Commands {
         #[arg(short, long)]
         db_path: Option<PathBuf>,
     },
-    // /// user management comms
-    // User {
-    //     #[command(subcommand)]
-    //     command: UserCommands,
-    // },
+
+    /// user management comms
+    User {
+        #[command(subcommand)]
+        command: UserCommands,
+    },
     #[command(subcommand)]
     Record(RecordCommands),
     // #[command(subcommand)]
@@ -48,11 +49,8 @@ enum Commands {
 #[derive(Subcommand)]
 enum UserCommands {
     Create { user_id: String },
-
     List,
-
     Delete { user_id: String },
-
     Show { user_id: String },
 }
 
@@ -64,13 +62,10 @@ enum RecordCommands {
         #[arg(short, long, value_delimiter = ',')]
         signers: Vec<String>,
     },
-
     Verify,
-
     Show {
         index: usize,
     },
-
     List,
 }
 
@@ -96,6 +91,100 @@ fn main() -> Result<()> {
                 println!("TODO: List all records");
             }
         },
+
+        Commands::User { command } => match command {
+            UserCommands::Create { user_id } => {
+                user_create(&user_id)?;
+            }
+            UserCommands::List => {
+                user_list()?;
+            }
+            UserCommands::Delete { user_id } => {
+                user_delete(&user_id)?;
+            }
+            UserCommands::Show { user_id } => {
+                user_show(&user_id)?;
+            }
+        },
     }
+    Ok(())
+}
+
+fn user_create(user_id: &str) -> Result<()> {
+    use crate::user_store::UserStore;
+
+    if UserStore::user_exists(user_id)? {
+        anyhow::bail!("User '{}' already exists", user_id);
+    }
+
+    UserStore::create_user(user_id)?;
+
+    println!("\n💡 User '{}' can now sign records", user_id);
+    println!("   Add roles with: ukweli user add-role {} <role>", user_id);
+
+    Ok(())
+}
+
+fn user_list() -> Result<()> {
+    use crate::user_store::UserStore;
+
+    let users = UserStore::list_users()?;
+
+    if users.is_empty() {
+        println!("No users found.");
+        println!("Create one with: ukweli user create <username>");
+    } else {
+        println!("Users:");
+        for user in users {
+            println!("  • {}", user);
+        }
+    }
+
+    Ok(())
+}
+
+fn user_delete(user_id: &str) -> Result<()> {
+    use crate::user_store::UserStore;
+
+    println!("Are you sure you want to delete user '{}'?", user_id);
+    println!("This will permanently delete their private key.");
+    println!("Type 'yes (y)' to confirm:");
+
+    let mut input = String::new();
+    std::io::stdin().read_line(&mut input)?;
+
+    if input.trim() != "yes" || input.trim() != "y" {
+        println!("Cancelled.");
+        return Ok(());
+    }
+
+    UserStore::delete_user(user_id)?;
+
+    Ok(())
+}
+
+fn user_show(user_id: &str) -> Result<()> {
+    use crate::user_store::UserStore;
+
+    let user = UserStore::load_user(user_id)?;
+
+    println!("User: {}", user.user_id);
+    println!(
+        "Verifying key: {}",
+        hex::encode(user.verifying_key.to_bytes())
+    );
+    println!(
+        "Roles: {}",
+        if user.roles.is_empty() {
+            "none".to_string()
+        } else {
+            user.roles
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<_>>()
+                .join(", ")
+        }
+    );
+
     Ok(())
 }
