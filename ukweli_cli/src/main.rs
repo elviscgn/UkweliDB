@@ -6,6 +6,7 @@ mod user_store;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
+// use ukweli_db::Workflow;
 
 // TODO
 // init – initialise database and genesis record #10 done
@@ -39,9 +40,8 @@ enum Commands {
     },
     #[command(subcommand)]
     Record(RecordCommands),
-    // #[command(subcommand)]
-    // Workflow(WorkflowCommands),
-
+    #[command(subcommand)]
+    Workflow(WorkflowCommands),
     // #[command(subcommand)]
     // State(StateCommands),
 }
@@ -68,6 +68,17 @@ enum RecordCommands {
     },
     List,
     Compact,
+}
+
+#[derive(Subcommand)]
+enum WorkflowCommands {
+    Load { file: PathBuf },
+
+    List,
+
+    Show { workflow_id: String },
+
+    Delete { workflow_id: String },
 }
 
 fn main() -> Result<()> {
@@ -109,6 +120,24 @@ fn main() -> Result<()> {
             }
             UserCommands::Show { user_id } => {
                 user_show(&user_id)?;
+            }
+        },
+
+        Commands::Workflow(command) => match command {
+            WorkflowCommands::Load { file } => {
+                commands::workflow::load(file)?;
+            }
+
+            WorkflowCommands::List => {
+                println!("listing workflows");
+            }
+
+            WorkflowCommands::Show { workflow_id } => {
+                println!("showing workflow {}", workflow_id);
+            }
+
+            WorkflowCommands::Delete { workflow_id } => {
+                println!("deleting workflow {}", workflow_id);
             }
         },
     }
