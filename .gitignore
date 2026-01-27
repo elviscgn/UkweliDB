@@ -22,3 +22,6 @@ target
 
 test_db.ukweli
 test_recovery.wal
+
+test_workflow.json
+test_workflow.yaml
