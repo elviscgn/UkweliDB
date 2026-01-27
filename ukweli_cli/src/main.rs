@@ -73,11 +73,8 @@ enum RecordCommands {
 #[derive(Subcommand)]
 enum WorkflowCommands {
     Load { file: PathBuf },
-
     List,
-
     Show { workflow_id: String },
-
     Delete { workflow_id: String },
 }
 
@@ -129,7 +126,7 @@ fn main() -> Result<()> {
             }
 
             WorkflowCommands::List => {
-                println!("listing workflows");
+                commands::workflow::list()?;
             }
 
             WorkflowCommands::Show { workflow_id } => {
