@@ -66,7 +66,6 @@ pub fn list(
         return Ok(());
     }
 
-
     let mut filtered_records = Vec::new();
 
     for record in all_records {
