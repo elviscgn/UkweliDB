@@ -66,7 +66,19 @@ enum RecordCommands {
     Show {
         index: usize,
     },
-    List,
+    List {
+        #[arg(long)]
+        signer: Option<String>,
+
+        #[arg(long)]
+        from: Option<usize>,
+
+        #[arg(long)]
+        to: Option<usize>,
+
+        #[arg(long)]
+        limit: Option<usize>,
+    },
     Compact,
 }
 
@@ -96,8 +108,13 @@ fn main() -> Result<()> {
             RecordCommands::Show { index } => {
                 commands::record::show(index)?;
             }
-            RecordCommands::List => {
-                commands::record::list()?;
+            RecordCommands::List {
+                signer,
+                from,
+                to,
+                limit,
+            } => {
+                commands::record::list(signer, from, to, limit)?;
             }
 
             RecordCommands::Compact => {
