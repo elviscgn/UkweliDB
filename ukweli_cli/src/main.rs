@@ -10,11 +10,11 @@ use std::path::PathBuf;
 
 // TODO
 // init – initialise database and genesis record #10 done
-// record append – append signed records to the ledger #11
-// record verify – verify hash chain and signatures #12
-// workflow load – load JSON/YAML workflow definitions #13
-// workflow list – list available workflows #14
-// record show – inspect records by entity or range #15
+// record append – append signed records to the ledger #11 done
+// record verify – verify hash chain and signatures #12 done
+// workflow load – load JSON/YAML workflow definitions #13 done
+// workflow list – list available workflows #14 done
+// record show – inspect records by entity or range #15 done
 // state current – compute current entity state by replay #16
 
 #[derive(Parser)]
@@ -130,7 +130,7 @@ fn main() -> Result<()> {
             }
 
             WorkflowCommands::Show { workflow_id } => {
-                println!("showing workflow {}", workflow_id);
+                commands::workflow::show(workflow_id)?;
             }
 
             WorkflowCommands::Delete { workflow_id } => {

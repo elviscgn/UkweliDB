@@ -96,6 +96,47 @@ pub fn list() -> Result<()> {
     Ok(())
 }
 
+pub fn show(workflow_id: String) -> Result<()> {
+    let workflows_dir = Config::workflows_dir()?;
+    let workflow_file = workflows_dir.join(format!("{}.json", workflow_id));
+
+    if !workflow_file.exists() {
+        bail!(
+            "Workflow '{}' not found. Load it first with: ukweli workflow load <file>",
+            workflow_id
+        );
+    }
+
+    let workflow = load_workflow_from_file(&workflow_file)?;
+
+    println!("Workflow: {}", workflow.name);
+    println!("═══════════════════════════════════════");
+    println!("ID:          {}", workflow.id);
+    println!("Description: {}", workflow.description);
+    println!("Initial:     {}", workflow.initial_state);
+
+    println!("\nStates ({}):", workflow.states.len());
+    for state in &workflow.states {
+        println!("  • {} - {}", state.id, state.label);
+    }
+
+    println!("\nTransitions ({}):", workflow.transitions.len());
+    for transition in &workflow.transitions {
+        let roles = if transition.required_roles.is_empty() {
+            "anyone".to_string()
+        } else {
+            transition.required_roles.join(", ")
+        };
+
+        println!("  • {} → {}", transition.from_state, transition.to_state);
+        println!("    Name:  {}", transition.name);
+        println!("    Roles: {}", roles);
+        println!();
+    }
+
+    Ok(())
+}
+
 fn load_workflow_from_file<P: AsRef<Path>>(path: P) -> Result<Workflow> {
     let content = std::fs::read_to_string(path.as_ref()).context("Failed to read workflow file")?;
 
