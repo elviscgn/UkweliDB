@@ -134,7 +134,7 @@ fn main() -> Result<()> {
             }
 
             WorkflowCommands::Delete { workflow_id } => {
-                println!("deleting workflow {}", workflow_id);
+                commands::workflow::delete(workflow_id)?;
             }
         },
     }

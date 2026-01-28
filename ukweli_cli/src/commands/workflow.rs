@@ -137,6 +137,21 @@ pub fn show(workflow_id: String) -> Result<()> {
     Ok(())
 }
 
+pub fn delete(workflow_id: String) -> Result<()> {
+    let workflows_dir = Config::workflows_dir()?;
+    let workflow_file = workflows_dir.join(format!("{}.json", workflow_id));
+
+    if !workflow_file.exists() {
+        bail!("Workflow '{}' not found", workflow_id);
+    }
+
+    std::fs::remove_file(&workflow_file).context("Failed to delete workflow file")?;
+
+    println!("Deleted workflow: {}", workflow_id);
+
+    Ok(())
+}
+
 fn load_workflow_from_file<P: AsRef<Path>>(path: P) -> Result<Workflow> {
     let content = std::fs::read_to_string(path.as_ref()).context("Failed to read workflow file")?;
 
