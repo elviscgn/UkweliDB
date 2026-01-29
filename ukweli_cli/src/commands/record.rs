@@ -69,16 +69,10 @@ pub fn list(
     let mut filtered_records = Vec::new();
 
     for record in all_records {
-        if let Some(from_idx) = from {
-            if record.index < from_idx {
-                continue;
-            }
-        }
-
-        if let Some(to_idx) = to {
-            if record.index > to_idx {
-                continue;
-            }
+        if from.is_some_and(|from_idx| record.index < from_idx)
+            || to.is_some_and(|to_idx| record.index > to_idx)
+        {
+            continue;
         }
 
         if let Some(ref signer_id) = signer {
