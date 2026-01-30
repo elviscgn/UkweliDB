@@ -201,7 +201,7 @@ fn user_delete(user_id: &str) -> Result<()> {
     let mut input = String::new();
     std::io::stdin().read_line(&mut input)?;
 
-    if input.trim() != "yes" || input.trim() != "y" {
+    if input.trim() != "yes" && input.trim() != "y" {
         println!("Cancelled.");
         return Ok(());
     }
