@@ -13,7 +13,7 @@
   </a>
 </p>
 
-A tamper proof, verifiable, immutable database, written from scratch in Rust.
+UkweliDB ("truth" in Swahili) is a a tamper proof, verifiable, immutable database, written from scratch in Rust.
 
 
 <h1>Getting started</h1>
