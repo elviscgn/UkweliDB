@@ -19,8 +19,8 @@ UkweliDB ("truth" in Swahili) is a a tamper proof, verifiable, immutable databas
 <h1>Quick Start</h1>
 <h3>Installation</h3>
 <h6>Clone the repository</h6>
-1. <code>git clone https://github.com/elviscgn/ukweliDB</code> </br>
-2. <code>cd ukweli</code>
+1. <code>git clone https://github.com/elviscgn/UkweliDB</code> </br>
+2. <code>cd UkweliDB</code>
 
 <h6>Build the CLI</h6>
 1. <code>cd ukweli_cli</code> </br>
