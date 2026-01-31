@@ -16,13 +16,68 @@
 UkweliDB ("truth" in Swahili) is a a tamper proof, verifiable, immutable database, written from scratch in Rust.
 
 
-<h1>Getting started</h1>
-<h3>CLI</h3>
-1. <code>cargo run init</code><br>
-2. <code>cargo run user create elvis</code><br>
-3. <code>cargo run -- record append "payload" --signers elvis</code><br>
-4. <code>cargo run -- record compact</code><br>
-5. <code>cargo run -- record list</code><br>
+<h1>Quick Start</h1>
+<h3>Installation</h3>
+<h6>Clone the repository</h6>
+1. <code>git clone https://github.com/elviscgn/ukweliDB</code> </br>
+2. <code>cd ukweli</code>
+
+<h6>Build the CLI</h6>
+1. <code>cd ukweli_cli</code> </br>
+2. <code>cargo build --release</code>
+
+<h1>Basic Usage</h1>
+
+<h3>1. Initialise Database</h3>
+<code>ukweli init</code>
+
+<p>This creates:</p>
+<ul>
+<li><code>~/.ukweli/default.ukweli</code> - Your database file</li>
+<li><code>~/.ukweli/config.json</code> - Configuration</li>
+<li><code>~/.ukweli/users/</code> - User keypairs</li>
+<li><code>~/.ukweli/workflows/</code> - Workflow definitions</li>
+</ul>
+<h3>2. Create Users</h3>
+<p>Users have cryptographic keypairs for signing records.</p>
+<table>
+<tr>
+  <td><strong>Create a user</strong></td>
+  <td><code>ukweli user create thabo</code></td>
+</tr>
+<tr>
+  <td><strong>Give them a role</strong></td>
+  <td><code>ukweli user add-role thabo land_officer</code></td>
+</tr>
+<tr>
+  <td><strong>List all users</strong></td>
+  <td><code>ukweli user list</code></td>
+</tr>
+<tr>
+  <td><strong>View user details</strong></td>
+  <td><code>ukweli user show thabo</code></td>
+</tr>
+</table>
+
+<h3>3. Add Records</h3>
+<table>
+<tr>
+  <td><strong>Simple record</strong></td>
+  <td><code>ukweli record append "Thabo registered property #12345" --signers thabo</code></td>
+</tr>
+<tr>
+  <td><strong>View all records</strong></td>
+  <td><code>ukweli record list</code></td>
+</tr>
+<tr>
+  <td><strong>View specific record</strong></td>
+  <td><code>ukweli record show 1</code></td>
+</tr>
+<tr>
+  <td><strong>Verify chain integrity</strong></td>
+  <td><code>ukweli record verify</code></td>
+</tr>
+</table>
 
 <h1>How it all works </h1>
 <h2>1. Core Idea </h2>
