@@ -45,6 +45,7 @@ UkweliDB ("truth" in Swahili) is a a tamper proof, verifiable, immutable databas
   <td><strong>Create a user</strong></td>
   <td><code>ukweli user create thabo</code></td>
 </tr>
+    
 <tr>
   <td><strong>List all users</strong></td>
   <td><code>ukweli user list</code></td>
