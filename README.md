@@ -144,6 +144,8 @@ transitions:
 
 <h3>References and where I got inspiration from</h3>
 
+- https://personales.upv.es/thinkmind/dl/conferences/cloudcomputing/cloud_computing_2017/cloud_computing_2017_3_30_28009.pdf
+
 - https://www.youtube.com/watch?v=ayG7ltGRRHs
 
 - https://www.youtube.com/watch?v=s19G6n0UjsM
